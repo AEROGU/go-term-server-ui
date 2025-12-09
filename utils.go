@@ -12,3 +12,30 @@ func getLineCount(text string) int {
 	// El número de líneas es la cantidad de separadores '\n' + 1
 	return strings.Count(text, "\n") + 1
 }
+
+// serverInfoWidth calculates the appropriate height for the serverInfo TextView
+// based on its content, with a maximum height of 8 lines.
+// The goal of having a maximum size is to avoid taking up too much space from
+// the possible buttons in the controls section.
+func serverInfoWidth() int {
+	var serverInfoLineCount int = getLineCount(serverInfo.GetText(true))
+	if serverInfoLineCount == 0 {
+		return 0 // Si no hay texto, altura 0 y no tiene caso procesar lo demás.
+	}
+	if serverInfoLineCount > 8 {
+		serverInfoLineCount = 8 // Altura máxima de 8 líneas, si se pasa deberá usar el scroll.
+	}
+	return serverInfoLineCount + 2 // +2 para los bordes
+}
+
+// setServerInfo actualiza el texto del serverInfo TextView de manera segura
+// dependiendo de si la aplicación está corriendo o no.
+func setServerInfo(text string) {
+	if isAppRunning {
+		App.QueueUpdateDraw(func() {
+			serverInfo.SetText(text)
+		})
+	} else {
+		serverInfo.SetText(text)
+	}
+}

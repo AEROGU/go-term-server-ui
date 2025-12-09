@@ -8,30 +8,20 @@ import (
 )
 
 var App = tview.NewApplication().EnableMouse(true)
-var isAppRunning = false                                                     // Bandera para controlar el estado de la app
-var serverInfo = tview.NewTextView().SetDynamicColors(true).SetRegions(true) // Se establece un SetChangedFunc más adelante
+var isAppRunning = false                                                                         // Bandera para controlar el estado de la app
+var serverInfo = tview.NewTextView().SetDynamicColors(true).SetScrollable(true).SetRegions(true) // Se establece un SetChangedFunc más adelante
 var logOutput = tview.NewTextView().SetDynamicColors(true).SetScrollable(true).SetMaxLines(1000).SetChangedFunc(func() { App.Draw() })
 
 // CONECTAR EL LOGGER
 // Creamos nuestro writer personalizado
 var logWriter = &LogWriter{view: logOutput}
 
-func setServerInfo(text string) {
-	if isAppRunning {
-		App.QueueUpdateDraw(func() {
-			serverInfo.SetText(text)
-		})
-	} else {
-		serverInfo.SetText(text)
-	}
-}
-
 func main() {
 
 	logOutput.SetBorder(true).SetTitle("Server Logs")
 
 	serverInfo.SetBorder(true).SetTitle("Server Info")
-	setServerInfo("IP: [yellow]127.0.0.1[-]\nPort: [yellow]3000[-]\nStatus: [green::l]Online[-]")
+	setServerInfo("IP: [yellow]127.0.0.1[-]\nPort: [yellow]3000[-]\nStatus: [green::l]Online[-]\n1\n2\n3\n4\n5\n6\n7\n8\n9\n10")
 
 	controls := tview.NewFlex().SetDirection(tview.FlexRow)
 	controls.SetBorder(true).SetTitle("Controls")
@@ -43,15 +33,13 @@ func main() {
 	})
 	controls.AddItem(stopServerButton, 3, 0, false)
 
-	var serverInfoLineCount int = getLineCount(serverInfo.GetText(true)) + 2 // +2 para bordes
-
 	lateralLeft := tview.NewFlex().SetDirection(tview.FlexRow).
-		AddItem(serverInfo, serverInfoLineCount, 1, false).                       // Top Left
+		AddItem(serverInfo, serverInfoWidth(), 1, false).                         // Top Left
 		AddItem(tview.NewBox().SetBorder(true).SetTitle("Controls"), 0, 1, false) // Bottom Left
 
 	// Actualizar tamaño automáticamente cuando cambie el texto
 	serverInfo.SetChangedFunc(func() {
-		newHeight := getLineCount(serverInfo.GetText(true)) + 2
+		newHeight := serverInfoWidth()
 		lateralLeft.ResizeItem(serverInfo, newHeight, 1)
 		App.Draw()
 	})
@@ -68,8 +56,8 @@ func main() {
 
 	// logWriter.Write([]byte("[green]Application started. Logs will appear here...[-]\n"))
 
-	// Test: Actualizar info del servidor después de 3 segundos -----------------
-	time.AfterFunc(3*time.Second, func() {
+	// Test: Actualizar info del servidor después de 5 segundos -----------------
+	time.AfterFunc(5*time.Second, func() {
 		setServerInfo("Test")
 	})
 
