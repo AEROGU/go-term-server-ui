@@ -28,14 +28,25 @@ func serverInfoWidth() int {
 	return serverInfoLineCount + 2 // +2 para los bordes
 }
 
-// setServerInfo actualiza el texto del serverInfo TextView de manera segura
+// SetServerInfo actualiza el texto del serverInfo TextView de manera segura
 // dependiendo de si la aplicación está corriendo o no.
-func setServerInfo(text string) {
+func SetServerInfo(text string) {
 	if isAppRunning {
 		App.QueueUpdateDraw(func() {
 			serverInfo.SetText(text)
 		})
 	} else {
 		serverInfo.SetText(text)
+	}
+}
+
+// RefreshUI fuerza un redraw de la UI si la aplicación está corriendo.
+// Útil para actualizar la interfaz después de cambios en segundo plano.
+func RefreshUI() {
+	if isAppRunning {
+		App.QueueUpdateDraw(func() {
+			// No hacemos nada más que forzar un redraw
+			// Ya que QueueUpdateDraw fuerza un redraw después de ejecutar la función que le pases.
+		})
 	}
 }
