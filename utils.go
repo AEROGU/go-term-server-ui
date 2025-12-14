@@ -41,12 +41,21 @@ func SetServerInfo(text string) {
 }
 
 // RefreshUI fuerza un redraw de la UI si la aplicación está corriendo.
-// Útil para actualizar la interfaz después de cambios en segundo plano.
+// Útil para actualizar la interfaz después de cambios en segundo plano,
+// como por ejemplo después de cambiar el texto o el color de fondo de
+// un botón o un textview.
 func RefreshUI() {
-	if isAppRunning {
-		App.QueueUpdateDraw(func() {
-			// No hacemos nada más que forzar un redraw
-			// Ya que QueueUpdateDraw fuerza un redraw después de ejecutar la función que le pases.
-		})
+	if App == nil {
+		return
 	}
+
+	if isAppRunning {
+		// Desde gorutines en background: encolamos una actualización segura.
+		App.QueueUpdateDraw(func() {})
+		return
+	}
+
+	// Si la app no está corriendo (o estamos en el hilo de UI),
+	// forzamos el dibujo inmediatamente.
+	App.Draw()
 }

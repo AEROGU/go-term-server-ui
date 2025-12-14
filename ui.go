@@ -17,6 +17,8 @@ var (
 	// Aquí se muestra información sobre el servidor, se establece un SetChangedFunc más adelante para actualizar su tamaño dinámicamente
 	serverInfo *tview.TextView
 	logOutput  *tview.TextView
+	// controlsFlex contendrá los botones y otros controles
+	controlsFlex *tview.Flex
 )
 
 func InitializeUI() {
@@ -28,18 +30,11 @@ func InitializeUI() {
 	logOutput = tview.NewTextView().SetDynamicColors(true).SetScrollable(true).SetMaxLines(1000).SetChangedFunc(func() { App.Draw() })
 	logOutput.SetBorder(true).SetTitle("Server Logs")
 
-	connectLogWriterToTextViewAndLog(logOutput)
-	SetServerInfo("IP: [yellow]0.0.0.0[-]\nPort: [yellow]0[-]\nStatus: [red::l]Offline[-::L]") // Default info al iniciar.
-	controlsFlex := tview.NewFlex().SetDirection(tview.FlexRow)
+	LogWriter = &tuiLogWriter{view: logOutput} // Inicializar logWriter
+
+	// SetServerInfo("IP: [yellow]0.0.0.0[-]\nPort: [yellow]0[-]\nStatus: [red::l]Offline[-::L]") // Default info al iniciar.
+	controlsFlex = tview.NewFlex().SetDirection(tview.FlexRow)
 	controlsFlex.SetBorder(true).SetTitle("Controls")
-
-	// Aquí puedes agregar botones u otros controles a 'controls'
-
-	stopServerButton := tview.NewButton("Stop Server").SetSelectedFunc(func() {
-		// Lógica para detener el servidor
-		SetServerInfo("IP: [yellow]127.0.0.1[-]\nPort: [yellow]3000[-]\nStatus: [gray]Offline[-]")
-	})
-	controlsFlex.AddItem(stopServerButton, 0, 1, false)
 
 	lateralLeft := tview.NewFlex().SetDirection(tview.FlexRow).
 		AddItem(serverInfo, serverInfoWidth(), 1, false). // Top Left
@@ -65,6 +60,8 @@ func RunUI() error {
 		InitializeUI()
 	}
 	isAppRunning = true
+	// connectLogWriterToTextViewAndLog(logOutput)
+	// defer log.SetOutput(nil) // Restablece al valor predeterminado (stderr)
 	if err := App.Run(); err != nil {
 		return err
 	}
