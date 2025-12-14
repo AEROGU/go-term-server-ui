@@ -61,12 +61,16 @@ func main() {
 	})
 
 	log.SetOutput(LogWriter) // Redirigir el log global a nuestro LogWriter
+	// si quieres que tu log se guarde (por ejemplo en un archivo) además de
+	// mostrarse, puedes redirigirlo a más de 1 lugar así: `log.SetOutput(io.MultiWriter(myFileWriter, LogWriter))`
+
 	defer log.SetOutput(nil) // Restablece al valor predeterminado (stderr)
 
 	time.AfterFunc(time.Second, func() {
 		LogWriter.Println("✅ [green]TUI En ejecución[-]")
 	})
-	if err := App.Run(); err != nil {
+
+	if err := RunUI(); err != nil {
 		log.Fatalf("Error running application: %v", err)
 	}
 }

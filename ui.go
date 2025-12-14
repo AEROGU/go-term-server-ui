@@ -4,8 +4,6 @@ import (
 	"github.com/rivo/tview"
 )
 
-// TODO: Lo que ahora se ejecuta en main.go lo convertiremos en una librería apropiada aquí.
-
 // Variables globales de la aplicación.
 // Se eligió hacerlas globales en lugar de usar structs porque solo habrá una instancia
 // de la aplicación en todo momento, y esto simplifica el acceso desde distintas funciones.
@@ -27,7 +25,7 @@ func InitializeUI() {
 	serverInfo = tview.NewTextView().SetDynamicColors(true).SetScrollable(true).SetRegions(true) // Se establece un SetChangedFunc más adelante
 	serverInfo.SetBorder(true).SetTitle("Server Info")
 
-	logOutput = tview.NewTextView().SetDynamicColors(true).SetScrollable(true).SetMaxLines(1000).SetChangedFunc(func() { App.Draw() })
+	logOutput = tview.NewTextView().SetDynamicColors(true).SetScrollable(true).SetMaxLines(1000)
 	logOutput.SetBorder(true).SetTitle("Server Logs")
 
 	LogWriter = &tuiLogWriter{view: logOutput} // Inicializar logWriter
@@ -39,11 +37,14 @@ func InitializeUI() {
 	lateralLeft := tview.NewFlex().SetDirection(tview.FlexRow).
 		AddItem(serverInfo, serverInfoWidth(), 1, false). // Top Left
 		AddItem(controlsFlex, 3, 0, false)                // Bottom Left
-	// Actualizar tamaño automáticamente cuando cambie el texto
+	// Actualizar tamaño automáticamente cuando cambie el texto.
+	// Aquí no llamamos a RefreshUI porque este callback se ejecuta
+	// dentro del hilo de UI cuando SetServerInfo actualiza el texto a
+	// través de App.QueueUpdateDraw (cuando la app está corriendo) o de
+	// forma directa antes de App.Run(). El redraw ya está garantizado.
 	serverInfo.SetChangedFunc(func() {
 		newHeight := serverInfoWidth()
 		lateralLeft.ResizeItem(serverInfo, newHeight, 1)
-		App.Draw()
 	})
 
 	mainFlex := tview.NewFlex().

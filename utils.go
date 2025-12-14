@@ -30,32 +30,48 @@ func serverInfoWidth() int {
 
 // SetServerInfo actualiza el texto del serverInfo TextView de manera segura
 // dependiendo de si la aplicación está corriendo o no.
+//
+// Reglas:
+//   - Antes de que la app corra (App == nil o !isAppRunning), se asume que
+//     estamos en el hilo principal de inicialización y se puede llamar
+//     directamente a SetText.
+//   - Cuando la app está corriendo, la actualización se encola usando
+//     App.QueueUpdateDraw **desde una goroutine separada**, ya que QueueUpdate*
+//     está pensada para ser llamada desde gorutinas no-UI. Llamarla dentro de
+//     callbacks de la propia UI puede provocar deadlocks.
 func SetServerInfo(text string) {
-	if isAppRunning {
-		App.QueueUpdateDraw(func() {
+	// Fase de inicialización: sin event loop todavía.
+	if App == nil || !isAppRunning {
+		if serverInfo != nil {
 			serverInfo.SetText(text)
-		})
-	} else {
-		serverInfo.SetText(text)
+		}
+		return
 	}
+
+	// App está corriendo: encolamos la actualización en el hilo de UI desde
+	// una goroutine aparte para evitar bloquear el event loop.
+	t := text
+	go func() {
+		App.QueueUpdateDraw(func() {
+			serverInfo.SetText(t)
+		})
+	}()
 }
 
 // RefreshUI fuerza un redraw de la UI si la aplicación está corriendo.
 // Útil para actualizar la interfaz después de cambios en segundo plano,
 // como por ejemplo después de cambiar el texto o el color de fondo de
 // un botón o un textview.
+// Si la app no está corriendo, no hace nada (los cambios se renderizarán
+// automáticamente cuando App.Run() inicie).
 func RefreshUI() {
-	if App == nil {
+	if App == nil || !isAppRunning {
 		return
 	}
 
-	if isAppRunning {
-		// Desde gorutines en background: encolamos una actualización segura.
+	// Encolamos una actualización segura desde una goroutine separada para
+	// evitar llamar QueueUpdate*/Draw desde el propio event loop.
+	go func() {
 		App.QueueUpdateDraw(func() {})
-		return
-	}
-
-	// Si la app no está corriendo (o estamos en el hilo de UI),
-	// forzamos el dibujo inmediatamente.
-	App.Draw()
+	}()
 }

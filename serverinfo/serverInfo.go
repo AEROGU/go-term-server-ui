@@ -13,6 +13,8 @@ const (
 	ServerStatusStopping
 )
 
+// Info contiene información sobre el estado del servidor.
+// Puedes usar este o implementar el tuyo propio si necesitas que se muestren más datos.
 type Info struct {
 	IP     string
 	Port   int
